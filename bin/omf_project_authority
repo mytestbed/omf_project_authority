@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+BIN_DIR = File.dirname(File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__)
+TOP_DIR = File.join(BIN_DIR, '..')
+$: << File.join(TOP_DIR, 'lib')
+
+require 'json'
+require 'omf/project_authority'
+require 'omf/project_authority/server'
+
+DESCR = %{
+Start a web server providing an OMF Project Authority
+}
+
+opts = OMF::ProjectAuthority::DEF_OPTS
+
+OMF::ProjectAuthority::Server.new.run(opts)
+

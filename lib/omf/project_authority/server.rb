@@ -1,5 +1,5 @@
 require 'rubygems'
-
+require 'json/jwt'
 require 'json'
 
 require 'rack'
@@ -22,10 +22,12 @@ module OMF::ProjectAuthority
     include OMF::Base::Loggable
     extend OMF::Base::Loggable
 
+    ETC_DIR = File.join(File.dirname(__FILE__), '/../../../etc/omf-project-authority')
+
     def init_logger
       OMF::Base::Loggable.init_log 'server', :searchPath => File.join(File.dirname(__FILE__), 'server')
 
-      @config = OMF::Base::YAML.load('config', :path => [File.dirname(__FILE__) + '/../../../etc/omf-project-authority'])[:project_authority]
+      @config = OMF::Base::YAML.load('config', :path => [ETC_DIR])[:project_authority]
     end
 
     def init_data_mapper(options)
@@ -45,6 +47,20 @@ module OMF::ProjectAuthority
       DataMapper.auto_upgrade! if options[:dm_auto_upgrade]
     end
 
+    def init_authorization(opts)
+      require 'json/jwt'
+      require 'omf_common'
+      require 'omf_common/auth'
+      require 'omf_common/auth/certificate_store'
+      puts "AUTH INIT"
+      store = OmfCommon::Auth::CertificateStore.init(opts)
+      root = OmfCommon::Auth::Certificate.create_root()
+      #adam = root.create_for_user('adam')
+      projectA_cert = root.create_for_resource('projectA', :project)
+      msg = {cnt: "shit", iss: projectA_cert}
+      p = JSON::JWT.new(msg).sign(projectA_cert.key , :RS256).to_s
+      puts p
+    end
 
     def load_test_state(options)
       require 'omf-sfa/am/am-rest/rest_handler'
@@ -69,14 +85,14 @@ module OMF::ProjectAuthority
       p2_uuid = UUIDTools::UUID.sha1_create(UUIDTools::UUID_DNS_NAMESPACE, 'projectB')
       p2 = OMF::ProjectAuthority::Resource::Project.create(name: 'projectB', uuid: p2_uuid)
 
-      OMF::ProjectAuthority::Resource::ProjectMember.create(user: u1, project: p1)
-      OMF::ProjectAuthority::Resource::ProjectMember.create(user: u2, project: p1)
+      OMF::ProjectAuthority::Resource::ProjectMember.create(user: u1, project: p1, role: 'leader')
+      OMF::ProjectAuthority::Resource::ProjectMember.create(user: u2, project: p1, role: 'member')
 
-      OMF::ProjectAuthority::Resource::ProjectMember.create(user: u2, project: p2)
+      OMF::ProjectAuthority::Resource::ProjectMember.create(user: u2, project: p2, role: 'leader')
 
     end
 
-    def run(opts)
+    def run(opts = DEF_OPTS, argv = ARGV)
       opts[:handlers] = {
         # Should be done in a better way
         :pre_rackup => lambda {
@@ -94,6 +110,7 @@ module OMF::ProjectAuthority
         :pre_run => lambda do |opts|
           init_logger()
           init_data_mapper(opts)
+          init_authorization(opts)
           load_test_state(opts) if opts[:load_test_state]
         end
       }
@@ -101,7 +118,7 @@ module OMF::ProjectAuthority
 
       #Thin::Logging.debug = true
       require 'omf_base/thin/runner'
-      OMF::Base::Thin::Runner.new(ARGV, opts).run!
+      OMF::Base::Thin::Runner.new(argv, opts).run!
     end
   end # class
 end # module

@@ -1,21 +1,19 @@
 
-OMF User Authority
-==================
+OMF Project Authority
+=====================
 
-This directory contains the implementations of simple OMF User Authority which 
-allows for the manipulation and observation of users and projects.
+This directory contains the implementations of simple OMF Project Authority which 
+allows for the manipulation and observation of users, projects, and hteir relationships.
 
 Installation
 ------------
 
 At this stage the best course of action is to clone the repository
 
-    % git clone https://github.com/mytestbed/omf_sfa.git
-    % cd omf_sfa
-    % export OMF_SFA_HOME=`pwd`
-    % bundle install
-    % cd ..
     % git clone https://github.com/mytestbed/omf_project_authority.git
+    % cd omf_project_authority
+    % sudo apt-install sqlite3-dev  # for Debian/Ubuntu systems
+    % bundle install --path vendor
     
 Starting the Service
 --------------------
