@@ -21,7 +21,7 @@ Starting the Service
 To start a project authority with a some pre-populated resources ('--test-load-state') from this directory, run the following:
 
     % cd omf_project_authority
-    % ruby -I lib -I $OMF_SFA_HOME/lib lib/omf/project_authority.rb --test-load-state  --dm-auto-upgrade --disable-https start
+    % bundle exec bin/omf_project_authority --disable-https --test-load-state --dm-auto-upgrade start
     
 which should result in something like:
 
@@ -30,7 +30,7 @@ which should result in something like:
     DEBUG Server: >> Debugging ON
     DEBUG Server: >> Tracing ON
     INFO Server: >> Maximum connections set to 1024
-    INFO Server: >> Listening on 0.0.0.0:8006, CTRL+C to stop
+    INFO Server: >> Listening on 0.0.0.0:8004, CTRL+C to stop
     
 
 Testing REST API
@@ -39,7 +39,52 @@ Testing REST API
 If you started the service with the '--test-load-state' option, the service got preloaded with a few
 resources. To list all users:
 
-    $ curl http://localhost:8006/users
-    {
-    }
+    $ curl http://localhost:8004/users
+    [
+      {
+        "uuid": "fcae7f37-7f41-5b58-b22b-ed741c84ded3",
+        "href": "http://221.199.209.233:8004/users/fcae7f37-7f41-5b58-b22b-ed741c84ded3",
+        "name": "adam",
+        "type": "user"
+      },
+      {
+        "uuid": "ef45d397-0411-5f5e-8940-9bdbdef3958b",
+        "href": "http://221.199.209.233:8004/users/ef45d397-0411-5f5e-8940-9bdbdef3958b",
+        "name": "bob",
+        "type": "user"
+      }
+    ]
     
+To get a full listing for user 'bob':
+
+    % curl http://localhost:8004/users/bob?_level=3
+    {
+      "type": "user",
+      "uuid": "ef45d397-0411-5f5e-8940-9bdbdef3958b",
+      "href": "http://221.199.209.233:8004/users/ef45d397-0411-5f5e-8940-9bdbdef3958b",
+      "name": "bob",
+      "expiration": "2014-07-13T04:54:57+00:00",
+      "creation": "2014-01-14T04:54:57+00:00",
+      "email": "bob@acme.com",
+      "project_memberships": [
+        {
+          "uuid": "0c40b34f-b1a2-4766-a742-94817acd4ec0",
+          "href": "http://221.199.209.233:8004/project_members/0c40b34f-b1a2-4766-a742-94817acd4ec0",
+          "name": "r24341060",
+          "type": "project_member",
+          "project": "http://221.199.209.233:8004/projects/f8092fe6-dd4c-5c7e-a01c-85c542e50ddf",
+          "user": "http://221.199.209.233:8004/users/ef45d397-0411-5f5e-8940-9bdbdef3958b",
+          "role": "member"
+        },
+        {
+          "uuid": "f35b6991-b03f-4d86-9507-e2a8bfa96324",
+          "href": "http://221.199.209.233:8004/project_members/f35b6991-b03f-4d86-9507-e2a8bfa96324",
+          "name": "r26160500",
+          "type": "project_member",
+          "project": "http://221.199.209.233:8004/projects/0b01a876-8755-568d-8e24-fe0197318e03",
+          "user": "http://221.199.209.233:8004/users/ef45d397-0411-5f5e-8940-9bdbdef3958b",
+          "role": "leader"
+        }
+      ],
+      "certificate": "http://221.199.209.233:8004/users/ef45d397-0411-5f5e-8940-9bdbdef3958b/cert"
+    }    
